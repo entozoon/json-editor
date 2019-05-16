@@ -42,7 +42,7 @@ const createWindow = async () => {
     resizable: true,
     frame: false,
     menu: null,
-    transparent: false, // can't resize with this on
+    transparent: true,
     webPreferences: {
       nodeIntegration: true
     }
