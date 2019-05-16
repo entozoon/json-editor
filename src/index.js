@@ -40,13 +40,15 @@ const createWindow = async () => {
     width,
     height,
     resizable: true,
-    frame: true,
+    frame: false,
+    menu: null,
     transparent: false, // can't resize with this on
     webPreferences: {
       nodeIntegration: true
     }
   });
-  mainWindow.setMenu(null);
+  // mainWindow.setMenu(null);
+  // mainWindow.setResizable(true);
 
   // Position
   const screenHeight = screen.getPrimaryDisplay().workAreaSize.height;

@@ -126,52 +126,48 @@ export default class extends React.Component {
             )}
           </span>
         </header>
-        {error ? (
-          <p className="error">{error}</p>
-        ) : (
-          this.state &&
-          items && (
-            <div>
-              <main>
-                {items.map((item, objectIndex) => (
-                  <div className="object" key={objectIndex}>
-                    {prioritiseArrayByValues(Object.keys(item), [
-                      "id",
-                      "name"
-                    ]).map((key, j) => {
-                      let value = item[key];
-                      value = value ? value : "";
-                      return (
-                        // <p key={j} className={`-${objectIndex} -${j}`}>
-                        <React.Fragment key={j}>
-                          <label>{key}</label>
-                          <textarea
-                            value={value}
-                            key={`-${objectIndex} -${j}`}
-                            className={`-${objectIndex} -${j}
+        <main>
+          {error ? (
+            <p className="error">{error}</p>
+          ) : (
+            this.state &&
+            items &&
+            items.map((item, objectIndex) => (
+              <div className="object" key={objectIndex}>
+                {prioritiseArrayByValues(Object.keys(item), ["id", "name"]).map(
+                  (key, j) => {
+                    let value = item[key];
+                    value = value ? value : "";
+                    return (
+                      // <p key={j} className={`-${objectIndex} -${j}`}>
+                      <React.Fragment key={j}>
+                        <label>{key}</label>
+                        <textarea
+                          value={value}
+                          key={`-${objectIndex} -${j}`}
+                          className={`-${objectIndex} -${j}
                             ${Array.isArray(value) ? "-array" : ""}
                             ${isInteger(value) ? "-integer" : ""}
                             ${isFloat(value) ? "-float" : ""}
                             `}
-                            onChange={e =>
-                              this.handleChange({
-                                value: e.target.value + "",
-                                objectIndex,
-                                key,
-                                type: Array.isArray(value) ? "array" : null
-                              })
-                            }
-                            rows="1"
-                          />
-                        </React.Fragment>
-                      );
-                    })}
-                  </div>
-                ))}
-              </main>
-            </div>
-          )
-        )}
+                          onChange={e =>
+                            this.handleChange({
+                              value: e.target.value + "",
+                              objectIndex,
+                              key,
+                              type: Array.isArray(value) ? "array" : null
+                            })
+                          }
+                          rows="1"
+                        />
+                      </React.Fragment>
+                    );
+                  }
+                )}
+              </div>
+            ))
+          )}
+        </main>
       </div>
     );
   }
