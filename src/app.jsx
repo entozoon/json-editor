@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { ipcRenderer } from "electron";
 const _ = require("lodash");
 
@@ -12,6 +12,8 @@ const prioritiseArrayByValues = (array, values) => {
   });
   return array;
 };
+const isInteger = value => /^\d+$/.test(value);
+const isFloat = value => !isNaN(value) && value.toString().indexOf(".") != -1;
 
 export default class extends React.Component {
   constructor(props) {
@@ -66,26 +68,26 @@ export default class extends React.Component {
       }
     } else {
       // Integer
-      value = /^\d+$/.test(value) ? parseInt(value) : value;
+      value = isInteger(/^\d+$/.test(value)) ? parseInt(value) : value;
       // Float
-      value =
-        !isNaN(value) && value.toString().indexOf(".") != -1
-          ? parseFloat(value)
-          : value;
+      value = isFloat(value) ? parseFloat(value) : value;
     }
 
     jsonFile.json[objectIndex][key] = value;
     this.setState({ jsonFile });
   }
   render() {
+    let items, error, name;
     const { jsonFile } = this.state;
-    let items, error;
-    if (jsonFile && jsonFile.json) {
+    if (jsonFile) {
+      name = jsonFile.name;
       items = _.cloneDeep(jsonFile.json);
       // console.log(items);
       // Sort items, alphabetical (default) with 'name' at the top
     }
-    if (!Array.isArray(items)) {
+    if (!items) {
+      error = "Hit Choose File above to begin.";
+    } else if (!Array.isArray(items)) {
       error = "Only supports JSON with an array of objects, currently. Sorry!";
     }
     return (
@@ -93,14 +95,39 @@ export default class extends React.Component {
         <header>
           <h1>JSONEditor</h1>
           {/* <input type="file" directory="" webkitdirectory="" /> */}
-          <input
-            type="file"
-            accept=".json"
-            onChange={e => this.handleFileSelect(e.target.files[0])}
-          />
+          <span className="input file">
+            <input
+              type="file"
+              name="file"
+              id="file"
+              accept=".json"
+              onChange={e => this.handleFileSelect(e.target.files[0])}
+            />
+            <label htmlFor="file">Choose File</label>
+            {name && <span className="filename">{name}</span>}
+          </span>
+          <span className="controls">
+            {!error && (
+              <span>
+                <span className="input">
+                  <button
+                    onClick={this.save.bind(this)}
+                    disabled={this.state.isSaving}
+                  >
+                    {this.state.isSaving ? "Saving.." : "Save"}
+                  </button>
+                </span>
+                <span className="input">
+                  <button onClick={this.duplicate.bind(this)}>
+                    Duplicate Last Item
+                  </button>
+                </span>
+              </span>
+            )}
+          </span>
         </header>
         {error ? (
-          <p>{error}</p>
+          <p className="error">{error}</p>
         ) : (
           this.state &&
           items && (
@@ -115,14 +142,17 @@ export default class extends React.Component {
                       let value = item[key];
                       value = value ? value : "";
                       return (
-                        <p key={j} className={`-${objectIndex} -${j}`}>
+                        // <p key={j} className={`-${objectIndex} -${j}`}>
+                        <React.Fragment key={j}>
                           <label>{key}</label>
                           <textarea
                             value={value}
                             key={`-${objectIndex} -${j}`}
-                            className={`-${objectIndex} -${j} ${
-                              Array.isArray(value) ? "-array" : ""
-                            }`}
+                            className={`-${objectIndex} -${j}
+                            ${Array.isArray(value) ? "-array" : ""}
+                            ${isInteger(value) ? "-integer" : ""}
+                            ${isFloat(value) ? "-float" : ""}
+                            `}
                             onChange={e =>
                               this.handleChange({
                                 value: e.target.value + "",
@@ -133,23 +163,12 @@ export default class extends React.Component {
                             }
                             rows="1"
                           />
-                        </p>
+                        </React.Fragment>
                       );
                     })}
                   </div>
                 ))}
               </main>
-              <aside>
-                <div className="controls">
-                  <button
-                    onClick={this.save.bind(this)}
-                    disabled={this.state.isSaving}
-                  >
-                    {this.state.isSaving ? "Saving.." : "Save"}
-                  </button>
-                  <button onClick={this.duplicate.bind(this)}>Duplicate</button>
-                </div>
-              </aside>
             </div>
           )
         )}
