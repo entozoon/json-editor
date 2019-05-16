@@ -17,13 +17,9 @@ export default class extends React.Component {
   constructor(props) {
     super(props);
     this.state = { isSaving: false };
-    ipcRenderer.on("jsonFiles", (event, jsonFiles) => {
-      console.log("jsonFiles received", jsonFiles);
-      this.setState({ jsonFiles });
-    });
-    ipcRenderer.on("data", (event, data) => {
-      console.log("Data received", data);
-      this.setState({ data });
+    ipcRenderer.on("jsonFile", (event, jsonFile) => {
+      // console.log("jsonFile received", jsonFile);
+      this.setState({ jsonFile });
     });
     ipcRenderer.on("saved", (event, data) => {
       // Set a timeout because it's weirdly instantaneous
@@ -33,7 +29,7 @@ export default class extends React.Component {
     });
   }
   save() {
-    console.log("Saving", this.state.jsonFile.filename);
+    console.log("Saving", this.state.jsonFile.name);
     this.setState({ isSaving: true });
     ipcRenderer.send("save", this.state.jsonFile);
   }
@@ -46,24 +42,13 @@ export default class extends React.Component {
       window.scrollBy({ top: 9999, left: 0, behavior: "smooth" });
     }, 200);
   }
-  handleSelect(filename) {
-    if (filename === "Please select") {
-      this.setState({
-        jsonFile: null
-      });
-    } else {
-      console.log("Loading", filename);
-      let jsonFile = this.state.jsonFiles.filter(
-        f => f.filename == filename
-      )[0];
-      if (!jsonFile.json || !Array.isArray(jsonFile.json)) {
-        console.error("Only supports JSON array of objects!");
-        return;
-      }
-      this.setState({
-        jsonFile
-      });
-    }
+  handleFileSelect(file) {
+    const { name, path } = file;
+    // console.log("Requesting file", file);
+    ipcRenderer.send("requestFile", {
+      name,
+      path
+    });
   }
   handleChange({ value, objectIndex, key, type }) {
     // console.log(objectIndex, key, value);
@@ -94,73 +79,79 @@ export default class extends React.Component {
   }
   render() {
     const { jsonFile } = this.state;
-    let items;
+    let items, error;
     if (jsonFile && jsonFile.json) {
       items = _.cloneDeep(jsonFile.json);
       // console.log(items);
       // Sort items, alphabetical (default) with 'name' at the top
     }
+    if (!Array.isArray(items)) {
+      error = "Only supports JSON with an array of objects, currently. Sorry!";
+    }
     return (
       <div className="app" ref="app">
         <header>
           <h1>JSONEditor</h1>
-          <select onChange={e => this.handleSelect(e.target.value)}>
-            <option>Please select</option>
-            {this.state.jsonFiles &&
-              this.state.jsonFiles.map((f, i) => (
-                <option key={i}>{f.filename}</option>
-              ))}
-          </select>
+          {/* <input type="file" directory="" webkitdirectory="" /> */}
+          <input
+            type="file"
+            accept=".json"
+            onChange={e => this.handleFileSelect(e.target.files[0])}
+          />
         </header>
-
-        {this.state && items && (
-          <div>
-            <main>
-              {items.map((item, objectIndex) => (
-                <div className="object" key={objectIndex}>
-                  {prioritiseArrayByValues(Object.keys(item), [
-                    "id",
-                    "name"
-                  ]).map((key, j) => {
-                    let value = item[key];
-                    value = value ? value : "";
-                    return (
-                      <p key={j} className={`-${objectIndex} -${j}`}>
-                        <label>{key}</label>
-                        <textarea
-                          value={value}
-                          key={`-${objectIndex} -${j}`}
-                          className={`-${objectIndex} -${j} ${
-                            Array.isArray(value) ? "-array" : ""
-                          }`}
-                          onChange={e =>
-                            this.handleChange({
-                              value: e.target.value + "",
-                              objectIndex,
-                              key,
-                              type: Array.isArray(value) ? "array" : null
-                            })
-                          }
-                          rows="1"
-                        />
-                      </p>
-                    );
-                  })}
+        {error ? (
+          <p>{error}</p>
+        ) : (
+          this.state &&
+          items && (
+            <div>
+              <main>
+                {items.map((item, objectIndex) => (
+                  <div className="object" key={objectIndex}>
+                    {prioritiseArrayByValues(Object.keys(item), [
+                      "id",
+                      "name"
+                    ]).map((key, j) => {
+                      let value = item[key];
+                      value = value ? value : "";
+                      return (
+                        <p key={j} className={`-${objectIndex} -${j}`}>
+                          <label>{key}</label>
+                          <textarea
+                            value={value}
+                            key={`-${objectIndex} -${j}`}
+                            className={`-${objectIndex} -${j} ${
+                              Array.isArray(value) ? "-array" : ""
+                            }`}
+                            onChange={e =>
+                              this.handleChange({
+                                value: e.target.value + "",
+                                objectIndex,
+                                key,
+                                type: Array.isArray(value) ? "array" : null
+                              })
+                            }
+                            rows="1"
+                          />
+                        </p>
+                      );
+                    })}
+                  </div>
+                ))}
+              </main>
+              <aside>
+                <div className="controls">
+                  <button
+                    onClick={this.save.bind(this)}
+                    disabled={this.state.isSaving}
+                  >
+                    {this.state.isSaving ? "Saving.." : "Save"}
+                  </button>
+                  <button onClick={this.duplicate.bind(this)}>Duplicate</button>
                 </div>
-              ))}
-            </main>
-            <aside>
-              <div className="controls">
-                <button
-                  onClick={this.save.bind(this)}
-                  disabled={this.state.isSaving}
-                >
-                  {this.state.isSaving ? "Saving.." : "Save"}
-                </button>
-                <button onClick={this.duplicate.bind(this)}>Duplicate</button>
-              </div>
-            </aside>
-          </div>
+              </aside>
+            </div>
+          )
         )}
       </div>
     );

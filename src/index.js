@@ -72,26 +72,35 @@ const createWindow = async () => {
     mainWindow.webContents.send("jsonFiles", jsonFiles);
     // mainWindow.webContents.send("data", data);
   });
+
+  ipcMain.on("requestFile", (event, file) => {
+    console.log("requestFile received", file);
+    const { name, path } = file;
+    mainWindow.webContents.send("jsonFile", {
+      name,
+      path,
+      json: JSON.parse(fs.readFileSync(path))
+    });
+    // console.log(fs.readFileSync(filename));
+  });
+
   ipcMain.on("save", (event, jsonFile) => {
+    let { name, path, json } = jsonFile;
     if (jsonFile) {
-      console.log(`Saving ${jsonFile.filename}`);
-      const backupFilename = `${jsonFile.filename}.${_.kebabCase(
+      console.log(`Saving ${name}`);
+      const backupFilename = `${path}.backup.${_.kebabCase(
         new Date()
           .toISOString()
           .replace("T", "-")
           .replace("Z", "")
-      )}.backup.json`;
-      fs.copyFile(`${jsonFile.filename}`, backupFilename, err => {
+      )}.json`;
+      fs.copyFile(`${path}`, backupFilename, err => {
         if (err) throw err;
         console.log("Backed up", backupFilename);
-        fs.writeFile(
-          `${jsonFile.filename}`,
-          JSON.stringify(jsonFile.json, null, "  "),
-          () => {
-            console.log("Saved");
-            mainWindow.webContents.send("saved", true);
-          }
-        );
+        fs.writeFile(`${path}`, JSON.stringify(json, null, "  "), () => {
+          console.log("Saved");
+          mainWindow.webContents.send("saved", true);
+        });
       });
     }
   });
