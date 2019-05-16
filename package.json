@@ -13,6 +13,8 @@
     "lint": "eslint --cache --color --ext .jsx,.js src"
   },
   "build": {
+    "productName": "JSONEditor",
+    "artifactName": "JSONEditor.${ext}",
     "win": {
       "target": [
         {

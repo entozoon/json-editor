@@ -1,4 +1,4 @@
-# JSON Editor
+# JSONEditor
 
 **[Download](https://github.com/entozoon/json-editor/releases)**
 
