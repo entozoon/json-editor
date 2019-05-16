@@ -68,7 +68,7 @@ export default class extends React.Component {
       }
     } else {
       // Integer
-      value = isInteger(/^\d+$/.test(value)) ? parseInt(value) : value;
+      value = isInteger(value) ? parseInt(value) : value;
       // Float
       value = isFloat(value) ? parseFloat(value) : value;
     }
