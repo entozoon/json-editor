@@ -1,7 +1,7 @@
 {
   "name": "json-editor",
-  "productName": "json-editor",
-  "version": "1.0.0",
+  "productName": "JSONEditor",
+  "version": "1.0.1",
   "description": "JSON array-of-objects Editor",
   "main": "src/index.js",
   "scripts": {

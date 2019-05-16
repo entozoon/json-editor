@@ -86,7 +86,7 @@ const createWindow = async () => {
         console.log("Backed up", backupFilename);
         fs.writeFile(
           `${jsonFile.filename}`,
-          JSON.stringify(jsonFile.json),
+          JSON.stringify(jsonFile.json, null, "  "),
           () => {
             console.log("Saved");
             mainWindow.webContents.send("saved", true);
