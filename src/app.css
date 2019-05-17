@@ -39,11 +39,6 @@ body {
     0 0.5em
   );
 }
-.app {
-  display: flex;
-  flex-flow: column;
-  height: 100%;
-}
 header {
   display: flex;
   position: sticky;
@@ -67,6 +62,14 @@ header::before {
   right: 3px;
   bottom: 3px;
   -webkit-app-region: drag;
+  pointer-events: none;
+}
+header * {
+  position: relative;
+}
+button {
+  /* Having fun yet? https://github.com/electron/electron/issues/1354#issuecomment-89599580 */
+  -webkit-app-region: no-drag;
 }
 .input {
   position: relative;
