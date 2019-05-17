@@ -67,7 +67,11 @@ header::before {
 header * {
   position: relative;
 }
-button {
+a,
+button,
+.input,
+input,
+label {
   /* Having fun yet? https://github.com/electron/electron/issues/1354#issuecomment-89599580 */
   -webkit-app-region: no-drag;
 }
