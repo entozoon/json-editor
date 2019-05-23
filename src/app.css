@@ -27,6 +27,8 @@ body {
 }
 #App {
   height: 100%;
+  overflow: hidden;
+  overflow-y: scroll;
   background: black;
   clip-path: polygon(
     0.5em 0,

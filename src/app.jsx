@@ -76,6 +76,16 @@ export default class extends React.Component {
     jsonFile.json[objectIndex][key] = value;
     this.setState({ jsonFile });
   }
+  search(target) {
+    // window.find(target, false, false, true, false, true);
+    if (window.find(target, false, false, true, false, true)) {
+      // If it's _not_ within the search box itself..
+      if (![...window.getSelection().anchorNode.classList].includes("search")) {
+        const top = window.getSelection().anchorNode.offsetTop;
+        document.getElementById("App").scrollTo(0, top);
+      }
+    }
+  }
   render() {
     let items, error, name;
     const { jsonFile } = this.state;
@@ -109,6 +119,14 @@ export default class extends React.Component {
           <span className="controls">
             {!error && (
               <span>
+                <span className="input search">
+                  <input
+                    type="text"
+                    placeholder="Search"
+                    className="search"
+                    onChange={e => this.search(e.target.value)}
+                  />
+                </span>
                 <span className="input">
                   <button
                     onClick={this.save.bind(this)}
@@ -126,7 +144,7 @@ export default class extends React.Component {
             )}
           </span>
         </header>
-        <main>
+        <main ref="main">
           {error ? (
             <p className="error">{error}</p>
           ) : (
