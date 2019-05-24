@@ -202,6 +202,9 @@ textarea:focus {
 .found {
   background-color: #37023e;
 }
+.primary {
+  background-color: #611b46;
+}
 .-array {
   color: #5bd664;
 }

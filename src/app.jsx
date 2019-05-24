@@ -1,7 +1,6 @@
 import * as React from "react";
 import { ipcRenderer, remote } from "electron";
 const _ = require("lodash");
-const currentWindow = remote.getCurrentWindow();
 
 const prioritiseArrayByValues = (array, values) => {
   values.reverse().forEach(value => {
@@ -16,10 +15,15 @@ const prioritiseArrayByValues = (array, values) => {
 const isInteger = value => /^\d+$/.test(value);
 const isFloat = value => !isNaN(value) && value.toString().indexOf(".") != -1;
 
+const dimensions = remote
+  .getCurrentWindow()
+  .webContents.getOwnerBrowserWindow()
+  .getBounds();
+
 export default class extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { isSaving: false };
+    this.state = { isSaving: false, searchIteration: 0 };
     ipcRenderer.on("jsonFile", (event, jsonFile) => {
       // console.log("jsonFile received", jsonFile);
       this.setState({ jsonFile });
@@ -78,6 +82,13 @@ export default class extends React.Component {
     this.setState({ jsonFile });
   }
   search(query) {
+    if (query !== this.state.query) {
+      this.searchIteration = 0;
+    }
+    this.setState({ query });
+
+    console.log("Searching", query, "iteration", this.searchIteration);
+
     // window.find(query, false, false, true, false, true);
     let textareas = [];
     for (let i in this.refs) {
@@ -85,22 +96,35 @@ export default class extends React.Component {
         textareas.push(this.refs[i]);
       }
     }
-    let weFoundSomething = false;
-    textareas &&
-      textareas.forEach(t => {
-        if (query && t.value.toLowerCase().includes(query.toLowerCase())) {
-          t.classList.add("found");
-          if (!weFoundSomething) {
-            weFoundSomething = t;
-          }
-        } else {
-          t.classList.remove("found");
-        }
-      });
-    weFoundSomething &&
-      document
-        .getElementById("App")
-        .scrollTo(0, weFoundSomething.offsetTop - 50);
+    if (!textareas) return;
+    let textareasInWhichWeFoundStuff = textareas.filter(
+      t => query && t.value.toLowerCase().includes(query.toLowerCase())
+    );
+
+    if (this.searchIteration >= textareasInWhichWeFoundStuff.length) {
+      this.searchIteration = 0;
+    }
+    textareas.forEach(t => {
+      t.classList.remove("found");
+      t.classList.remove("primary");
+    });
+    if (textareasInWhichWeFoundStuff.length) {
+      textareasInWhichWeFoundStuff.forEach(t => t.classList.add("found"));
+      textareasInWhichWeFoundStuff[this.searchIteration].classList.add(
+        "primary"
+      );
+
+      const { height } = dimensions;
+      let top =
+        textareasInWhichWeFoundStuff[this.searchIteration].offsetTop -
+        height / 2;
+      top = top < 0 ? 0 : top;
+      document.getElementById("App").scrollTo(0, top);
+    }
+  }
+  searchIterate() {
+    this.searchIteration++;
+    this.search(this.state.query);
   }
   render() {
     let items, error, name;
@@ -144,6 +168,7 @@ export default class extends React.Component {
                     ref="search"
                     autoFocus
                     onChange={e => this.search(e.target.value)}
+                    onKeyPress={e => e.key == "Enter" && this.searchIterate()}
                   />
                 </span>
                 <span className="input">
