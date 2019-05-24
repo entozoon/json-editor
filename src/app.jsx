@@ -1,6 +1,7 @@
 import * as React from "react";
-import { ipcRenderer } from "electron";
+import { ipcRenderer, remote } from "electron";
 const _ = require("lodash");
+const currentWindow = remote.getCurrentWindow();
 
 const prioritiseArrayByValues = (array, values) => {
   values.reverse().forEach(value => {
@@ -76,15 +77,30 @@ export default class extends React.Component {
     jsonFile.json[objectIndex][key] = value;
     this.setState({ jsonFile });
   }
-  search(target) {
-    // window.find(target, false, false, true, false, true);
-    if (window.find(target, false, false, true, false, true)) {
-      // If it's _not_ within the search box itself..
-      if (![...window.getSelection().anchorNode.classList].includes("search")) {
-        const top = window.getSelection().anchorNode.offsetTop;
-        document.getElementById("App").scrollTo(0, top);
+  search(query) {
+    // window.find(query, false, false, true, false, true);
+    let textareas = [];
+    for (let i in this.refs) {
+      if (i.substring(0, `textarea`.length) === `textarea`) {
+        textareas.push(this.refs[i]);
       }
     }
+    let weFoundSomething = false;
+    textareas &&
+      textareas.forEach(t => {
+        if (query && t.value.toLowerCase().includes(query.toLowerCase())) {
+          t.classList.add("found");
+          if (!weFoundSomething) {
+            weFoundSomething = t;
+          }
+        } else {
+          t.classList.remove("found");
+        }
+      });
+    weFoundSomething &&
+      document
+        .getElementById("App")
+        .scrollTo(0, weFoundSomething.offsetTop - 50);
   }
   render() {
     let items, error, name;
@@ -124,6 +140,9 @@ export default class extends React.Component {
                     type="text"
                     placeholder="Search"
                     className="search"
+                    id="search"
+                    ref="search"
+                    autoFocus
                     onChange={e => this.search(e.target.value)}
                   />
                 </span>
@@ -163,6 +182,7 @@ export default class extends React.Component {
                         <textarea
                           value={value}
                           key={`-${objectIndex} -${j}`}
+                          ref={`textarea -${objectIndex} -${j}`}
                           className={`-${objectIndex} -${j}
                             ${Array.isArray(value) ? "-array" : ""}
                             ${isInteger(value) ? "-integer" : ""}
