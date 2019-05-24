@@ -9,7 +9,7 @@
     "package": "electron-forge package",
     "make-shonk-well-not-but-not-portable": "electron-forge make",
     "build": "electron-builder build --win",
-    "publish": "electron-forge publish",
+    "publish-nope": "electron-forge publish",
     "lint": "eslint --cache --color --ext .jsx,.js src"
   },
   "build": {
