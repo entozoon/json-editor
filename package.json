@@ -80,6 +80,6 @@
     "eslint-plugin-jsx-a11y": "^5",
     "eslint-plugin-react": "^7",
     "glob": "^7.1.4",
-    "lodash": "^4.17.11"
+    "lodash": "^4.17.19"
   }
 }
